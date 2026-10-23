@@ -101,12 +101,15 @@ def get_todays_games():
             {"home": "lakers", "away": "celtics", "home_name": "Los Angeles Lakers", "away_name": "Boston Celtics", "status": "20:30 EST", "is_live": False},
             {"home": "warriors", "away": "nuggets", "home_name": "Golden State Warriors", "away_name": "Denver Nuggets", "status": "EN VIVO - Q3", "is_live": True}
         ]}
+        
 @app.get("/api/predict")
 def predict_matchup(home_team: str, away_team: str):
     home_key, away_key = home_team.lower(), away_team.lower()
     
-    home = TEAM_METRICS.get(home_key, {"off_rating": 112.0, "def_rating": 112.0, "net_rating": 0.0, "form": 0.5, "b2b": False})
-    away = TEAM_METRICS.get(away_key, {"off_rating": 112.0, "def_rating": 112.0, "net_rating": 0.0, "form": 0.5, "b2b": False})
+    # Valores seguros por defecto si el diccionario falla
+    default_metrics = {"off_rating": 112.0, "def_rating": 112.0, "net_rating": 0.0, "form": 0.5, "b2b": False}
+    home = TEAM_METRICS.get(home_key, default_metrics)
+    away = TEAM_METRICS.get(away_key, default_metrics)
     
     base_diff = (home["net_rating"] + 2.5) - away["net_rating"]
     form_adj = (home["form"] - away["form"]) * 3.0
@@ -131,7 +134,7 @@ def predict_matchup(home_team: str, away_team: str):
             "def_rating": [home['def_rating'], away['def_rating']],
             "net_rating": [home['net_rating'], away['net_rating']]
         },
-        "analysis": f"Predicción avanzada basada en Net Rating, rendimiento reciente y cansancio por calendario."
+        "analysis": "Predicción multivariable basada en Net Rating y condiciones de descanso."
     }
 
 @app.get("/api/players/search")
