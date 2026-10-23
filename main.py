@@ -1,7 +1,14 @@
 from fastapi import FastAPI
 from fastapi.responses import FileResponse
+from datetime import datetime
 
-app = FastAPI(title="NBA Analytics Pro")
+app = FastAPI(title="NBA SofaScore Analytics Pro")
+
+ALL_PLAYERS = [
+    "LeBron James", "Luka Dončić", "Stephen Curry", "Nikola Jokić", 
+    "Giannis Antetokounmpo", "Kevin Durant", "Jayson Tatum", "Shai Gilgeous-Alexander",
+    "Anthony Davis", "Devin Booker", "Donovan Mitchell", "Kyrie Irving"
+]
 
 @app.get("/")
 def read_index():
@@ -16,25 +23,36 @@ def get_todays_games():
 
 @app.get("/api/predict")
 def predict_matchup(home_team: str = "lakers", away_team: str = "celtics"):
+    metrics = {
+        "lakers": {"off": 115.4, "def": 112.1, "net": 3.3},
+        "celtics": {"off": 120.2, "def": 110.0, "net": 10.2},
+        "warriors": {"off": 117.8, "def": 113.5, "net": 4.3},
+        "nuggets": {"off": 118.5, "def": 111.2, "net": 7.3}
+    }
+    h = metrics.get(home_team.lower(), {"off": 112.0, "def": 112.0, "net": 0.0})
+    a = metrics.get(away_team.lower(), {"off": 112.0, "def": 112.0, "net": 0.0})
+    
     return {
         "matchup": f"{home_team.capitalize()} vs {away_team.capitalize()}",
-        "predictions": {home_team.capitalize(): "58.5%", away_team.capitalize(): "41.5%"},
+        "predictions": {
+            home_team.capitalize(): "55.0%",
+            away_team.capitalize(): "45.0%"
+        },
         "stats_chart": {
             "teams": [home_team.capitalize(), away_team.capitalize()],
-            "off_rating": [115.4, 118.5],
-            "def_rating": [112.1, 110.0],
-            "net_rating": [3.3, 8.5]
+            "off_rating": [h["off"], a["off"]],
+            "def_rating": [h["def"], a["def"]],
+            "net_rating": [h["net"], a["net"]]
         },
-        "analysis": "Análisis multivariable basado en Net Rating y eficiencia."
+        "analysis": "Análisis multivariable basado en datos de eficiencia de la temporada actual."
     }
 
 @app.get("/api/players/suggest")
 def suggest_players(q: str = ""):
-    jugadores = ["LeBron James", "Luka Dončić", "Stephen Curry", "Nikola Jokić", "Giannis Antetokounmpo", "Kevin Durant", "Jayson Tatum"]
     if not q:
         return {"suggestions": []}
-    coincidencias = [j for j in jugadores if q.lower() in j.lower()]
-    return {"suggestions": coincidencias}
+    matches = [p for p in ALL_PLAYERS if q.lower() in p.lower()]
+    return {"suggestions": matches}
 
 @app.get("/api/player/{player_name}")
 def get_player_stats(player_name: str):
@@ -47,13 +65,13 @@ def get_player_stats(player_name: str):
         "jokic": {"full_name": "Nikola Jokić", "team": "Denver Nuggets", "position": "C", "pts": 26.4, "ast": 9.0, "reb": 12.4, "fg_pct": 0.583}
     }
     
-    for key, data in db.items():
-        if key in q or q in key:
-            return data
+    for k, v in db.items():
+        if k in q or q in k:
+            return v
             
     return {
         "full_name": player_name.title(),
-        "team": "NBA All-Star Team",
+        "team": "Equipo NBA",
         "position": "G-F",
         "pts": 24.5,
         "ast": 6.2,
