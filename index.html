@@ -3,49 +3,163 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NBA Analytics Pro</title>
+    <title>NBA SofaScore Analytics Pro</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body { font-family: Arial, sans-serif; background-color: #121212; color: #fff; margin: 0; padding: 20px; }
-        .container { max-width: 600px; margin: 0 auto; background: #1e1e1e; padding: 20px; border-radius: 10px; }
-        h1 { text-align: center; color: #ff5722; font-size: 20px; }
-        input, button { width: 100%; padding: 12px; margin-top: 10px; border-radius: 5px; border: none; box-sizing: border-box; }
-        input { background: #2a2a2a; color: #fff; border: 1px solid #444; }
-        button { background: #ff5722; color: #fff; font-weight: bold; cursor: pointer; }
-        .result-box { background: #2a2a2a; padding: 15px; border-radius: 5px; margin-top: 15px; }
-        .stat-line { display: flex; justify-content: space-between; border-bottom: 1px solid #333; padding: 8px 0; }
-        #suggestions { background: #252525; border: 1px solid #444; max-height: 150px; overflow-y: auto; border-radius: 5px; }
+        body { font-family: Arial, sans-serif; background-color: #121212; color: #fff; margin: 0; padding: 15px; }
+        .container { max-width: 800px; margin: 0 auto; background: #1e1e1e; padding: 20px; border-radius: 12px; }
+        h1 { text-align: center; color: #ff5722; font-size: 22px; margin-bottom: 20px; }
+        
+        .tabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+        .tab-btn { flex: 1; padding: 12px 8px; background: #2a2a2a; border: none; color: #aaa; border-radius: 8px; cursor: pointer; font-weight: bold; min-width: 120px; text-align: center; }
+        .tab-btn.active { background: #ff5722; color: #fff; }
+        
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        .card { background: #2a2a2a; padding: 15px; border-radius: 8px; margin-bottom: 12px; border-left: 4px solid #ff5722; }
+        .card.live { border-left-color: #4caf50; }
+        
+        input, select, button { width: 100%; padding: 12px; margin-top: 8px; border-radius: 6px; border: none; box-sizing: border-box; }
+        input, select { background: #333; color: #fff; border: 1px solid #444; }
+        button { background: #ff5722; color: #fff; font-weight: bold; cursor: pointer; margin-top: 15px; }
+        
+        #suggestions { background: #2a2a2a; border: 1px solid #444; max-height: 150px; overflow-y: auto; border-radius: 6px; }
         .sugg-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #333; }
         .sugg-item:hover { background: #ff5722; }
+        
+        .stat-line { display: flex; justify-content: space-between; border-bottom: 1px solid #333; padding: 8px 0; }
+        .badge { background: #4caf50; color: #fff; padding: 3px 8px; border-radius: 4px; font-size: 12px; }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>🏀 NBA SofaScore Analytics Pro</h1>
         
-        <h3>Buscar Jugador:</h3>
-        <input type="text" id="playerInput" placeholder="Escribe un nombre (ej: LeBron, Luka)..." oninput="fetchSuggestions()">
-        <div id="suggestions"></div>
-        
-        <button onclick="searchPlayer()">Consultar Estadísticas</button>
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('games')">📅 Partidos</button>
+            <button class="tab-btn" onclick="switchTab('predict')">📊 Predicción</button>
+            <button class="tab-btn" onclick="switchTab('players')">👤 Jugadores</button>
+            <button class="tab-btn" onclick="switchTab('ranking')">🏆 Power Ranking</button>
+        </div>
 
-        <div id="result" class="result-box" style="display:none;"></div>
+        <!-- TAB 1: PARTIDOS -->
+        <div id="tab-games" class="tab-content active">
+            <h3>Partidos de Hoy</h3>
+            <div id="games-list">Cargando partidos...</div>
+        </div>
+
+        <!-- TAB 2: PREDICCIÓN -->
+        <div id="tab-predict" class="tab-content">
+            <h3>Predicción Multivariable</h3>
+            <label>Equipo Local:</label>
+            <select id="homeTeam">
+                <option value="lakers">Los Angeles Lakers</option>
+                <option value="celtics">Boston Celtics</option>
+                <option value="warriors">Golden State Warriors</option>
+                <option value="nuggets">Denver Nuggets</option>
+            </select>
+            
+            <label style="margin-top:10px; display:block;">Equipo Visitante:</label>
+            <select id="awayTeam">
+                <option value="celtics">Boston Celtics</option>
+                <option value="lakers">Los Angeles Lakers</option>
+                <option value="warriors">Golden State Warriors</option>
+                <option value="nuggets">Denver Nuggets</option>
+            </select>
+            
+            <button onclick="runPrediction()">Analizar Matchup</button>
+            <div id="predict-result" style="margin-top:15px;"></div>
+            <canvas id="chartCanvas" style="margin-top:15px; max-height:250px;"></canvas>
+        </div>
+
+        <!-- TAB 3: JUGADORES -->
+        <div id="tab-players" class="tab-content">
+            <h3>Buscar Jugador (Autocompletado):</h3>
+            <input type="text" id="playerInput" placeholder="Escribe un nombre (ej: LeBron, Luka)..." oninput="fetchSuggestions()">
+            <div id="suggestions"></div>
+            <button onclick="searchPlayer()">Consultar Estadísticas</button>
+            <div id="player-result" class="card" style="display:none; margin-top:15px;"></div>
+        </div>
+
+        <!-- TAB 4: RANKING -->
+        <div id="tab-ranking" class="tab-content">
+            <h3>Power Ranking NBA</h3>
+            <div class="card"><div class="stat-line"><span>1. Boston Celtics</span> <strong>Net: +10.2</strong></div></div>
+            <div class="card"><div class="stat-line"><span>2. Denver Nuggets</span> <strong>Net: +7.3</strong></div></div>
+            <div class="card"><div class="stat-line"><span>3. Golden State Warriors</span> <strong>Net: +4.3</strong></div></div>
+            <div class="card"><div class="stat-line"><span>4. Los Angeles Lakers</span> <strong>Net: +3.3</strong></div></div>
+        </div>
     </div>
 
     <script>
+        let myChart = null;
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(`tab-${tab}`).classList.add('active');
+            if (tab === 'games') loadGames();
+        }
+
+        async function loadGames() {
+            try {
+                const res = await fetch('/api/todays-games');
+                const data = await res.json();
+                const container = document.getElementById('games-list');
+                container.innerHTML = data.games.map(g => `
+                    <div class="card ${g.is_live ? 'live' : ''}">
+                        <div style="display:flex; justify-content:space-between;">
+                            <strong>${g.home_name} vs ${g.away_name}</strong>
+                            ${g.is_live ? '<span class="badge">EN VIVO</span>' : ''}
+                        </div>
+                        <div style="color:#aaa; font-size:13px; margin-top:5px;">Estado: ${g.status}</div>
+                    </div>
+                `).join('');
+            } catch(e) {
+                document.getElementById('games-list').innerText = 'Error al cargar partidos.';
+            }
+        }
+
+        async function runPrediction() {
+            const h = document.getElementById('homeTeam').value;
+            const a = document.getElementById('awayTeam').value;
+            const res = await fetch(`/api/predict?home_team=${h}&away_team=${a}`);
+            const data = await res.json();
+            
+            document.getElementById('predict-result').innerHTML = `
+                <div class="card">
+                    <h4>${data.matchup}</h4>
+                    <p>${data.analysis}</p>
+                </div>
+            `;
+
+            if (myChart) myChart.destroy();
+            const ctx = document.getElementById('chartCanvas').getContext('2d');
+            myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.stats_chart.teams,
+                    datasets: [
+                        { label: 'Off Rating', data: data.stats_chart.off_rating, backgroundColor: '#ff5722' },
+                        { label: 'Def Rating', data: data.stats_chart.def_rating, backgroundColor: '#2196f3' }
+                    ]
+                },
+                options: { responsive: true, scales: { y: { beginAtZero: false } } }
+            });
+        }
+
         async function fetchSuggestions() {
             const q = document.getElementById('playerInput').value;
             const suggBox = document.getElementById('suggestions');
             if (q.length < 2) { suggBox.innerHTML = ''; return; }
-            
-            try {
-                const res = await fetch(`/api/players/suggest?q=${encodeURIComponent(q)}`);
-                const data = await res.json();
-                suggBox.innerHTML = data.suggestions.map(name => 
-                    `<div class="sugg-item" onclick="selectPlayer('${name}')">${name}</div>`
-                ).join('');
-            } catch (e) {
-                suggBox.innerHTML = '';
-            }
+            const res = await fetch(`/api/players/suggest?q=${encodeURIComponent(q)}`);
+            const data = await res.json();
+            suggBox.innerHTML = data.suggestions.map(name => 
+                `<div class="sugg-item" onclick="selectPlayer('${name}')">${name}</div>`
+            ).join('');
         }
 
         function selectPlayer(name) {
@@ -56,30 +170,30 @@
 
         async function searchPlayer() {
             const name = document.getElementById('playerInput').value;
-            const resBox = document.getElementById('result');
+            const resBox = document.getElementById('player-result');
             if (!name) return;
             
             resBox.style.display = 'block';
-            resBox.innerHTML = 'Cargando datos...';
+            resBox.innerHTML = 'Cargando...';
 
             try {
-                const response = await fetch(`/api/player/${encodeURIComponent(name)}`);
-                if (!response.ok) throw new Error('Error en respuesta');
-                const data = await response.json();
-
+                const res = await fetch(`/api/player/${encodeURIComponent(name)}`);
+                const data = await res.json();
                 resBox.innerHTML = `
-                    <h2 style="color:#ff5722; margin-top:0;">${data.full_name}</h2>
+                    <h3 style="color:#ff5722; margin-top:0;">${data.full_name}</h3>
                     <div class="stat-line"><span>Equipo:</span> <strong>${data.team}</strong></div>
                     <div class="stat-line"><span>Posición:</span> <strong>${data.position}</strong></div>
-                    <div class="stat-line"><span>Puntos por partido:</span> <strong>${data.pts}</strong></div>
+                    <div class="stat-line"><span>Puntos:</span> <strong>${data.pts}</strong></div>
                     <div class="stat-line"><span>Asistencias:</span> <strong>${data.ast}</strong></div>
                     <div class="stat-line"><span>Rebotes:</span> <strong>${data.reb}</strong></div>
                     <div class="stat-line"><span>% Tiro de Campo:</span> <strong>${(data.fg_pct * 100).toFixed(1)}%</strong></div>
                 `;
-            } catch (err) {
-                resBox.innerHTML = '<span style="color:#ff4444;">Error al consultar. Intenta nuevamente.</span>';
+            } catch (e) {
+                resBox.innerHTML = '<span style="color:#ff4444;">Error al consultar.</span>';
             }
         }
+
+        loadGames();
     </script>
 </body>
 </html>
