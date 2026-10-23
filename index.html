@@ -11,7 +11,7 @@
         h1 { text-align: center; color: #ff5722; font-size: 22px; margin-bottom: 20px; }
         
         .tabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
-        .tab-btn { flex: 1; padding: 12px 8px; background: #2a2a2a; border: none; color: #aaa; border-radius: 8px; cursor: pointer; font-weight: bold; min-width: 120px; text-align: center; }
+        .tab-btn { flex: 1; padding: 12px 8px; background: #2a2a2a; border: none; color: #aaa; border-radius: 8px; cursor: pointer; font-weight: bold; min-width: 110px; text-align: center; }
         .tab-btn.active { background: #ff5722; color: #fff; }
         
         .tab-content { display: none; }
@@ -24,7 +24,7 @@
         input, select { background: #333; color: #fff; border: 1px solid #444; }
         button { background: #ff5722; color: #fff; font-weight: bold; cursor: pointer; margin-top: 15px; }
         
-        #suggestions { background: #2a2a2a; border: 1px solid #444; max-height: 150px; overflow-y: auto; border-radius: 6px; }
+        #suggestions { background: #2a2a2a; border: 1px solid #444; max-height: 160px; overflow-y: auto; border-radius: 6px; }
         .sugg-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #333; }
         .sugg-item:hover { background: #ff5722; }
         
@@ -40,7 +40,7 @@
             <button class="tab-btn active" onclick="switchTab('games')">📅 Partidos</button>
             <button class="tab-btn" onclick="switchTab('predict')">📊 Predicción</button>
             <button class="tab-btn" onclick="switchTab('players')">👤 Jugadores</button>
-            <button class="tab-btn" onclick="switchTab('ranking')">🏆 Power Ranking</button>
+            <button class="tab-btn" onclick="switchTab('ranking')">🏆 Ranking</button>
         </div>
 
         <!-- TAB 1: PARTIDOS -->
@@ -49,24 +49,14 @@
             <div id="games-list">Cargando partidos...</div>
         </div>
 
-        <!-- TAB 2: PREDICCIÓN -->
+        <!-- TAB 2: PREDICCIÓN (30 EQUIPOS) -->
         <div id="tab-predict" class="tab-content">
-            <h3>Predicción Multivariable</h3>
+            <h3>Predicción Multivariable (30 Equipos)</h3>
             <label>Equipo Local:</label>
-            <select id="homeTeam">
-                <option value="lakers">Los Angeles Lakers</option>
-                <option value="celtics">Boston Celtics</option>
-                <option value="warriors">Golden State Warriors</option>
-                <option value="nuggets">Denver Nuggets</option>
-            </select>
+            <select id="homeTeam"></select>
             
             <label style="margin-top:10px; display:block;">Equipo Visitante:</label>
-            <select id="awayTeam">
-                <option value="celtics">Boston Celtics</option>
-                <option value="lakers">Los Angeles Lakers</option>
-                <option value="warriors">Golden State Warriors</option>
-                <option value="nuggets">Denver Nuggets</option>
-            </select>
+            <select id="awayTeam"></select>
             
             <button onclick="runPrediction()">Analizar Matchup</button>
             <div id="predict-result" style="margin-top:15px;"></div>
@@ -75,8 +65,8 @@
 
         <!-- TAB 3: JUGADORES -->
         <div id="tab-players" class="tab-content">
-            <h3>Buscar Jugador (Autocompletado):</h3>
-            <input type="text" id="playerInput" placeholder="Escribe un nombre (ej: LeBron, Luka)..." oninput="fetchSuggestions()">
+            <h3>Buscar Jugador (Base Global):</h3>
+            <input type="text" id="playerInput" placeholder="Escribe cualquier jugador (ej: LeBron, Curry, Durant)..." oninput="fetchSuggestions()">
             <div id="suggestions"></div>
             <button onclick="searchPlayer()">Consultar Estadísticas</button>
             <div id="player-result" class="card" style="display:none; margin-top:15px;"></div>
@@ -84,21 +74,37 @@
 
         <!-- TAB 4: RANKING -->
         <div id="tab-ranking" class="tab-content">
-            <h3>Power Ranking NBA</h3>
-            <div class="card"><div class="stat-line"><span>1. Boston Celtics</span> <strong>Net: +10.2</strong></div></div>
-            <div class="card"><div class="stat-line"><span>2. Denver Nuggets</span> <strong>Net: +7.3</strong></div></div>
-            <div class="card"><div class="stat-line"><span>3. Golden State Warriors</span> <strong>Net: +4.3</strong></div></div>
-            <div class="card"><div class="stat-line"><span>4. Los Angeles Lakers</span> <strong>Net: +3.3</strong></div></div>
+            <h3>Top Power Ranking NBA</h3>
+            <div class="card"><div class="stat-line"><span>1. Boston Celtics</span> <strong>Net: +11.6</strong></div></div>
+            <div class="card"><div class="stat-line"><span>2. Oklahoma City Thunder</span> <strong>Net: +10.0</strong></div></div>
+            <div class="card"><div class="stat-line"><span>3. Denver Nuggets</span> <strong>Net: +7.3</strong></div></div>
+            <div class="card"><div class="stat-line"><span>4. Cleveland Cavaliers</span> <strong>Net: +6.8</strong></div></div>
         </div>
     </div>
 
     <script>
         let myChart = null;
 
+        async function initApp() {
+            loadGames();
+            loadTeamsDropdowns();
+        }
+
+        async function loadTeamsDropdowns() {
+            try {
+                const res = await fetch('/api/teams-list');
+                const data = await res.json();
+                const optionsHTML = data.teams.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
+                document.getElementById('homeTeam').innerHTML = optionsHTML;
+                document.getElementById('awayTeam').innerHTML = optionsHTML;
+                document.getElementById('homeTeam').value = 'lal';
+                document.getElementById('awayTeam').value = 'bos';
+            } catch(e) {}
+        }
+
         function switchTab(tab) {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            
             event.target.classList.add('active');
             document.getElementById(`tab-${tab}`).classList.add('active');
             if (tab === 'games') loadGames();
@@ -108,8 +114,7 @@
             try {
                 const res = await fetch('/api/todays-games');
                 const data = await res.json();
-                const container = document.getElementById('games-list');
-                container.innerHTML = data.games.map(g => `
+                document.getElementById('games-list').innerHTML = data.games.map(g => `
                     <div class="card ${g.is_live ? 'live' : ''}">
                         <div style="display:flex; justify-content:space-between;">
                             <strong>${g.home_name} vs ${g.away_name}</strong>
@@ -169,12 +174,12 @@
         }
 
         async function searchPlayer() {
-            const name = document.getElementById('playerInput').value;
+            const name = document.getElementById('playerInput5') || document.getElementById('playerInput').value;
             const resBox = document.getElementById('player-result');
             if (!name) return;
             
             resBox.style.display = 'block';
-            resBox.innerHTML = 'Cargando...';
+            resBox.innerHTML = 'Consultando...';
 
             try {
                 const res = await fetch(`/api/player/${encodeURIComponent(name)}`);
@@ -183,9 +188,9 @@
                     <h3 style="color:#ff5722; margin-top:0;">${data.full_name}</h3>
                     <div class="stat-line"><span>Equipo:</span> <strong>${data.team}</strong></div>
                     <div class="stat-line"><span>Posición:</span> <strong>${data.position}</strong></div>
-                    <div class="stat-line"><span>Puntos:</span> <strong>${data.pts}</strong></div>
-                    <div class="stat-line"><span>Asistencias:</span> <strong>${data.ast}</strong></div>
-                    <div class="stat-line"><span>Rebotes:</span> <strong>${data.reb}</strong></div>
+                    <div class="stat-line"><span>Puntos (PTS):</span> <strong>${data.pts}</strong></div>
+                    <div class="stat-line"><span>Asistencias (AST):</span> <strong>${data.ast}</strong></div>
+                    <div class="stat-line"><span>Rebotes (REB):</span> <strong>${data.reb}</strong></div>
                     <div class="stat-line"><span>% Tiro de Campo:</span> <strong>${(data.fg_pct * 100).toFixed(1)}%</strong></div>
                 `;
             } catch (e) {
@@ -193,7 +198,7 @@
             }
         }
 
-        loadGames();
+        initApp();
     </script>
 </body>
 </html>
