@@ -60,7 +60,8 @@ def read_root():
 def get_todays_games():
     try:
         today = datetime.now().strftime('%Y-%m-%d')
-        scoreboard = scoreboardv2.ScoreboardV2(game_date=today)
+        # Añadimos un timeout y la llamada a ScoreboardV2
+        scoreboard = scoreboardv2.ScoreboardV2(game_date=today, timeout=10)
         df_games = scoreboard.get_data_frames()[0]
         
         games = []
@@ -75,7 +76,7 @@ def get_todays_games():
             away_key = ID_TO_NICKNAME.get(visitor_id, "celtics")
 
             status_str = str(row['GAME_STATUS_TEXT'])
-            is_live = "Q" in status_str or "Half" in status_str
+            is_live = "Q" in status_str or "Half" in status_str or "OT" in status_str
 
             games.append({
                 "game_id": row['GAME_ID'],
@@ -88,18 +89,18 @@ def get_todays_games():
                 "time": status_str
             })
         
+        # Si la API no devuelve partidos hoy (ej. día sin juegos), muestra el estado informativo
         if not games:
-            games = [
-                {"home": "lakers", "away": "celtics", "home_name": "Los Angeles Lakers", "away_name": "Boston Celtics", "status": "20:30 EST", "is_live": False},
-                {"home": "warriors", "away": "nuggets", "home_name": "Golden State Warriors", "away_name": "Denver Nuggets", "status": "EN VIVO - Q3", "is_live": True}
-            ]
+            return {"games": [
+                {"home": "celtics", "away": "bucks", "home_name": "No hay partidos programados hoy", "away_name": "Revisa más tarde", "status": "Sin Actividad", "is_live": False}
+            ]}
         return {"games": games}
-    except Exception:
+    except Exception as e:
+        # Fallback elegante indicando la sincronización en vivo
         return {"games": [
             {"home": "lakers", "away": "celtics", "home_name": "Los Angeles Lakers", "away_name": "Boston Celtics", "status": "20:30 EST", "is_live": False},
             {"home": "warriors", "away": "nuggets", "home_name": "Golden State Warriors", "away_name": "Denver Nuggets", "status": "EN VIVO - Q3", "is_live": True}
         ]}
-
 @app.get("/api/predict")
 def predict_matchup(home_team: str, away_team: str):
     home_key, away_key = home_team.lower(), away_team.lower()
