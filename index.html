@@ -37,10 +37,10 @@
         <h1>🏀 NBA SofaScore Analytics Pro</h1>
         
         <div class="tabs">
-            <button class="tab-btn active" onclick="switchTab('games')">📅 Partidos</button>
-            <button class="tab-btn" onclick="switchTab('predict')">📊 Predicción</button>
-            <button class="tab-btn" onclick="switchTab('players')">👤 Jugadores</button>
-            <button class="tab-btn" onclick="switchTab('ranking')">🏆 Ranking</button>
+            <button class="tab-btn active" onclick="switchTab('games', event)">📅 Partidos</button>
+            <button class="tab-btn" onclick="switchTab('predict', event)">📊 Predicción</button>
+            <button class="tab-btn" onclick="switchTab('players', event)">👤 Jugadores</button>
+            <button class="tab-btn" onclick="switchTab('ranking', event)">🏆 Ranking</button>
         </div>
 
         <!-- TAB 1: PARTIDOS -->
@@ -49,9 +49,9 @@
             <div id="games-list">Cargando partidos...</div>
         </div>
 
-        <!-- TAB 2: PREDICCIÓN (30 EQUIPOS) -->
+        <!-- TAB 2: PREDICCIÓN -->
         <div id="tab-predict" class="tab-content">
-            <h3>Predicción Multivariable (30 Equipos)</h3>
+            <h3>Predicción Multivariable</h3>
             <label>Equipo Local:</label>
             <select id="homeTeam"></select>
             
@@ -65,8 +65,8 @@
 
         <!-- TAB 3: JUGADORES -->
         <div id="tab-players" class="tab-content">
-            <h3>Buscar Jugador (Base Global):</h3>
-            <input type="text" id="playerInput" placeholder="Escribe cualquier jugador (ej: LeBron, Curry, Durant)..." oninput="fetchSuggestions()">
+            <h3>Buscar Jugador (Autocompletado):</h3>
+            <input type="text" id="playerInput" placeholder="Escribe un nombre (ej: LeBron, Giannis, Luka)..." oninput="fetchSuggestions()">
             <div id="suggestions"></div>
             <button onclick="searchPlayer()">Consultar Estadísticas</button>
             <div id="player-result" class="card" style="display:none; margin-top:15px;"></div>
@@ -74,7 +74,7 @@
 
         <!-- TAB 4: RANKING -->
         <div id="tab-ranking" class="tab-content">
-            <h3>Top Power Ranking NBA</h3>
+            <h3>Power Ranking NBA</h3>
             <div class="card"><div class="stat-line"><span>1. Boston Celtics</span> <strong>Net: +11.6</strong></div></div>
             <div class="card"><div class="stat-line"><span>2. Oklahoma City Thunder</span> <strong>Net: +10.0</strong></div></div>
             <div class="card"><div class="stat-line"><span>3. Denver Nuggets</span> <strong>Net: +7.3</strong></div></div>
@@ -102,10 +102,10 @@
             } catch(e) {}
         }
 
-        function switchTab(tab) {
+        function switchTab(tab, evt) {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            event.target.classList.add('active');
+            if (evt && evt.target) evt.target.classList.add('active');
             document.getElementById(`tab-${tab}`).classList.add('active');
             if (tab === 'games') loadGames();
         }
@@ -160,11 +160,15 @@
             const q = document.getElementById('playerInput').value;
             const suggBox = document.getElementById('suggestions');
             if (q.length < 2) { suggBox.innerHTML = ''; return; }
-            const res = await fetch(`/api/players/suggest?q=${encodeURIComponent(q)}`);
-            const data = await res.json();
-            suggBox.innerHTML = data.suggestions.map(name => 
-                `<div class="sugg-item" onclick="selectPlayer('${name}')">${name}</div>`
-            ).join('');
+            try {
+                const res = await fetch(`/api/players/suggest?q=${encodeURIComponent(q)}`);
+                const data = await res.json();
+                suggBox.innerHTML = data.suggestions.map(name => 
+                    `<div class="sugg-item" onclick="selectPlayer('${name}')">${name}</div>`
+                ).join('');
+            } catch(e) {
+                suggBox.innerHTML = '';
+            }
         }
 
         function selectPlayer(name) {
@@ -174,7 +178,7 @@
         }
 
         async function searchPlayer() {
-            const name = document.getElementById('playerInput5') || document.getElementById('playerInput').value;
+            const name = document.getElementById('playerInput').value;
             const resBox = document.getElementById('player-result');
             if (!name) return;
             
