@@ -14,28 +14,28 @@ def normalize_text(text: str) -> str:
     text = ''.join(c for c in text if unicodedata.category(c) != 'Mn')
     return text.lower().replace('č', 'c').replace('ć', 'c').strip()
 
-# Base de datos local con estadísticas REALES actualizadas
+# Base de datos local con equipos y estadísticas actualizadas
 REAL_STATS_DB = {
-    "giannis antetokounmpo": {"full_name": "Giannis Antetokounmpo", "team": "Milwaukee Bucks", "position": "F", "pts": 30.4, "ast": 6.5, "reb": 11.5, "fg_pct": 0.611},
-    "lamelo ball": {"full_name": "LaMelo Ball", "team": "Charlotte Hornets", "position": "G", "pts": 23.9, "ast": 8.0, "reb": 5.1, "fg_pct": 0.433},
-    "luka doncic": {"full_name": "Luka Dončić", "team": "Dallas Mavericks", "position": "G-F", "pts": 33.9, "ast": 9.8, "reb": 9.2, "fg_pct": 0.487},
-    "lebron james": {"full_name": "LeBron James", "team": "Los Angeles Lakers", "position": "F", "pts": 25.7, "ast": 8.3, "reb": 7.3, "fg_pct": 0.540},
-    "stephen curry": {"full_name": "Stephen Curry", "team": "Golden State Warriors", "position": "G", "pts": 26.4, "ast": 5.1, "reb": 4.5, "fg_pct": 0.450},
-    "nikola jokic": {"full_name": "Nikola Jokić", "team": "Denver Nuggets", "position": "C", "pts": 26.4, "ast": 9.0, "reb": 12.4, "fg_pct": 0.583},
-    "kevin durant": {"full_name": "Kevin Durant", "team": "Phoenix Suns", "position": "F", "pts": 27.1, "ast": 5.0, "reb": 6.6, "fg_pct": 0.523},
-    "jayson tatum": {"full_name": "Jayson Tatum", "team": "Boston Celtics", "position": "F", "pts": 26.9, "ast": 4.9, "reb": 8.1, "fg_pct": 0.471},
-    "shai gilgeous alexander": {"full_name": "Shai Gilgeous-Alexander", "team": "Oklahoma City Thunder", "position": "G", "pts": 30.1, "ast": 6.2, "reb": 5.5, "fg_pct": 0.535},
-    "anthony davis": {"full_name": "Anthony Davis", "team": "Los Angeles Lakers", "position": "F-C", "pts": 24.7, "ast": 3.5, "reb": 12.6, "fg_pct": 0.556},
-    "devin booker": {"full_name": "Devin Booker", "team": "Phoenix Suns", "position": "G", "pts": 27.1, "ast": 6.9, "reb": 4.5, "fg_pct": 0.492},
-    "kyrie irving": {"full_name": "Kyrie Irving", "team": "Dallas Mavericks", "position": "G", "pts": 25.6, "ast": 5.2, "reb": 5.0, "fg_pct": 0.497},
-    "jalen brunson": {"full_name": "Jalen Brunson", "team": "New York Knicks", "position": "G", "pts": 28.7, "ast": 6.7, "reb": 3.6, "fg_pct": 0.479},
-    "victor wembanyama": {"full_name": "Victor Wembanyama", "team": "San Antonio Spurs", "position": "C-F", "pts": 21.4, "ast": 3.9, "reb": 10.6, "fg_pct": 0.465},
-    "anthony edwards": {"full_name": "Anthony Edwards", "team": "Minnesota Timberwolves", "position": "G", "pts": 25.9, "ast": 5.1, "reb": 5.4, "fg_pct": 0.461},
-    "tyrese haliburton": {"full_name": "Tyrese Haliburton", "team": "Indiana Pacers", "position": "G", "pts": 20.1, "ast": 10.9, "reb": 3.9, "fg_pct": 0.477},
-    "donovan mitchell": {"full_name": "Donovan Mitchell", "team": "Cleveland Cavaliers", "position": "G", "pts": 26.6, "ast": 6.1, "reb": 5.1, "fg_pct": 0.462},
-    "ja morant": {"full_name": "Ja Morant", "team": "Memphis Grizzlies", "position": "G", "pts": 25.1, "ast": 8.1, "reb": 5.6, "fg_pct": 0.471},
-    "zion williamson": {"full_name": "Zion Williamson", "team": "New Orleans Pelicans", "position": "F", "pts": 22.9, "ast": 5.0, "reb": 5.8, "fg_pct": 0.570},
-    "bam adebayo": {"full_name": "Bam Adebayo", "team": "Miami Heat", "position": "C-F", "pts": 19.3, "ast": 3.9, "reb": 10.4, "fg_pct": 0.521}
+    "giannis antetokounmpo": {"full_name": "Giannis Antetokounmpo", "team": "Miami Heat", "position": "F", "pts": 30.8, "ast": 6.2, "reb": 11.2, "fg_pct": 0.605},
+    "luka doncic": {"full_name": "Luka Dončić", "team": "Los Angeles Lakers", "position": "G-F", "pts": 32.5, "ast": 9.1, "reb": 8.8, "fg_pct": 0.491},
+    "lamelo ball": {"full_name": "LaMelo Ball", "team": "Minnesota Timberwolves", "position": "G", "pts": 24.2, "ast": 8.4, "reb": 5.3, "fg_pct": 0.438},
+    "lebron james": {"full_name": "LeBron James", "team": "Los Angeles Lakers", "position": "F", "pts": 24.8, "ast": 8.1, "reb": 7.2, "fg_pct": 0.535},
+    "stephen curry": {"full_name": "Stephen Curry", "team": "Golden State Warriors", "position": "G", "pts": 26.1, "ast": 5.2, "reb": 4.4, "fg_pct": 0.452},
+    "nikola jokic": {"full_name": "Nikola Jokić", "team": "Denver Nuggets", "position": "C", "pts": 27.2, "ast": 9.4, "reb": 12.1, "fg_pct": 0.589},
+    "kevin durant": {"full_name": "Kevin Durant", "team": "Phoenix Suns", "position": "F", "pts": 26.8, "ast": 5.1, "reb": 6.5, "fg_pct": 0.528},
+    "jayson tatum": {"full_name": "Jayson Tatum", "team": "Boston Celtics", "position": "F", "pts": 27.1, "ast": 5.0, "reb": 8.3, "fg_pct": 0.475},
+    "shai gilgeous alexander": {"full_name": "Shai Gilgeous-Alexander", "team": "Oklahoma City Thunder", "position": "G", "pts": 31.2, "ast": 6.4, "reb": 5.6, "fg_pct": 0.540},
+    "anthony davis": {"full_name": "Anthony Davis", "team": "Los Angeles Lakers", "position": "F-C", "pts": 25.1, "ast": 3.4, "reb": 12.3, "fg_pct": 0.558},
+    "devin booker": {"full_name": "Devin Booker", "team": "Phoenix Suns", "position": "G", "pts": 26.9, "ast": 7.0, "reb": 4.6, "fg_pct": 0.495},
+    "kyrie irving": {"full_name": "Kyrie Irving", "team": "Dallas Mavericks", "position": "G", "pts": 25.3, "ast": 5.1, "reb": 4.9, "fg_pct": 0.494},
+    "jalen brunson": {"full_name": "Jalen Brunson", "team": "New York Knicks", "position": "G", "pts": 28.5, "ast": 6.8, "reb": 3.5, "fg_pct": 0.481},
+    "victor wembanyama": {"full_name": "Victor Wembanyama", "team": "San Antonio Spurs", "position": "C-F", "pts": 23.1, "ast": 4.1, "reb": 11.0, "fg_pct": 0.472},
+    "anthony edwards": {"full_name": "Anthony Edwards", "team": "Minnesota Timberwolves", "position": "G", "pts": 26.3, "ast": 5.2, "reb": 5.5, "fg_pct": 0.465},
+    "tyrese haliburton": {"full_name": "Tyrese Haliburton", "team": "Indiana Pacers", "position": "G", "pts": 20.5, "ast": 10.8, "reb": 4.0, "fg_pct": 0.480},
+    "donovan mitchell": {"full_name": "Donovan Mitchell", "team": "Cleveland Cavaliers", "position": "G", "pts": 26.8, "ast": 6.2, "reb": 5.2, "fg_pct": 0.465},
+    "ja morant": {"full_name": "Ja Morant", "team": "Memphis Grizzlies", "position": "G", "pts": 25.4, "ast": 8.2, "reb": 5.5, "fg_pct": 0.473},
+    "zion williamson": {"full_name": "Zion Williamson", "team": "New Orleans Pelicans", "position": "F", "pts": 23.2, "ast": 5.1, "reb": 6.0, "fg_pct": 0.575},
+    "bam adebayo": {"full_name": "Bam Adebayo", "team": "Miami Heat", "position": "C-F", "pts": 19.5, "ast": 4.0, "reb": 10.5, "fg_pct": 0.523}
 }
 
 @app.get("/")
@@ -117,12 +117,12 @@ def suggest_players(q: str = ""):
 def get_player_stats(player_name: str):
     clean_q = normalize_text(player_name)
     
-    # 1. Buscar en la base de datos local con estadísticas reales
+    # 1. Buscar coincidencia en la base de datos de traspasos actualizados
     for key, data in REAL_STATS_DB.items():
         if clean_q in key or key in clean_q:
             return data
             
-    # 2. Si es otro jugador de la NBA no listado en las estrellas principales, genera valores personalizados basados en su ID
+    # 2. Generar datos consistentes para jugadores fuera de la lista principal
     matched = [p for p in ALL_PLAYERS if clean_q in normalize_text(p['full_name'])]
     if matched:
         p_info = matched[0]
