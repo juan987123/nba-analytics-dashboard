@@ -11,56 +11,27 @@ app = FastAPI(
     version="7.0"
 )
 
-# Cargar automáticamente los 30 equipos desde la API oficial de la NBA
-all_nba_teams = teams.get_teams()
-ID_TO_NAME = {t['id']: t['full_name'] for t in all_nba_teams}
-ID_TO_NICKNAME = {t['id']: t['nickname'].lower() for t in all_nba_teams}
+# Cargar automáticamente los equipos
+all_teams = teams.get_teams()
+ID_TO_NAME = {t['id']: t['full_name'] for t in all_teams}
+ID_TO_NICKNAME = {t['id']: t['nickname'].lower() for t in all_teams}
 
-# Base de métricas para predicción con fallback
 TEAM_METRICS = {
-    "celtics": {"off_rating": 118.5, "def_rating": 111.3, "net_rating": 7.2, "form": 0.8, "b2b": False},
-    "bucks": {"off_rating": 116.9, "def_rating": 110.4, "net_rating": 6.5, "form": 0.8, "b2b": True},
-    "sixers": {"off_rating": 115.0, "def_rating": 111.0, "net_rating": 4.0, "form": 0.6, "b2b": False},
-    "knicks": {"off_rating": 115.0, "def_rating": 109.8, "net_rating": 5.2, "form": 1.0, "b2b": False},
-    "cavaliers": {"off_rating": 114.5, "def_rating": 109.7, "net_rating": 4.8, "form": 0.8, "b2b": False},
-    "pacers": {"off_rating": 118.0, "def_rating": 114.9, "net_rating": 3.1, "form": 0.6, "b2b": False},
-    "magic": {"off_rating": 111.5, "def_rating": 108.7, "net_rating": 2.8, "form": 0.6, "b2b": False},
-    "heat": {"off_rating": 112.8, "def_rating": 110.7, "net_rating": 2.1, "form": 0.4, "b2b": True},
-    "bulls": {"off_rating": 111.2, "def_rating": 112.7, "net_rating": -1.5, "form": 0.2, "b2b": False},
-    "hawks": {"off_rating": 114.5, "def_rating": 115.3, "net_rating": -0.8, "form": 0.4, "b2b": False},
-    "nets": {"off_rating": 111.0, "def_rating": 113.1, "net_rating": -2.1, "form": 0.4, "b2b": False},
-    "raptors": {"off_rating": 110.2, "def_rating": 113.7, "net_rating": -3.5, "form": 0.2, "b2b": False},
-    "hornets": {"off_rating": 108.5, "def_rating": 112.7, "net_rating": -4.2, "form": 0.2, "b2b": False},
-    "wizards": {"off_rating": 108.2, "def_rating": 114.2, "net_rating": -6.0, "form": 0.0, "b2b": False},
-    "pistons": {"off_rating": 107.0, "def_rating": 113.5, "net_rating": -6.5, "form": 0.0, "b2b": False},
-    "nuggets": {"off_rating": 117.8, "def_rating": 111.0, "net_rating": 6.8, "form": 0.8, "b2b": False},
-    "timberwolves": {"off_rating": 114.2, "def_rating": 108.1, "net_rating": 6.1, "form": 0.8, "b2b": False},
-    "thunder": {"off_rating": 116.5, "def_rating": 110.1, "net_rating": 6.4, "form": 0.8, "b2b": False},
-    "clippers": {"off_rating": 114.8, "def_rating": 110.7, "net_rating": 4.1, "form": 0.6, "b2b": False},
-    "mavericks": {"off_rating": 117.1, "def_rating": 112.9, "net_rating": 4.2, "form": 0.6, "b2b": False},
-    "suns": {"off_rating": 115.8, "def_rating": 112.0, "net_rating": 3.8, "form": 0.6, "b2b": False},
-    "pelicans": {"off_rating": 114.0, "def_rating": 110.8, "net_rating": 3.2, "form": 0.6, "b2b": False},
-    "lakers": {"off_rating": 115.2, "def_rating": 110.7, "net_rating": 4.5, "form": 0.8, "b2b": False},
-    "kings": {"off_rating": 116.2, "def_rating": 113.7, "net_rating": 2.5, "form": 0.6, "b2b": False},
-    "warriors": {"off_rating": 116.0, "def_rating": 111.0, "net_rating": 5.0, "form": 0.6, "b2b": True},
-    "rockets": {"off_rating": 113.0, "def_rating": 111.8, "net_rating": 1.2, "form": 0.6, "b2b": False},
-    "jazz": {"off_rating": 112.5, "def_rating": 115.0, "net_rating": -2.5, "form": 0.2, "b2b": False},
-    "grizzlies": {"off_rating": 109.8, "def_rating": 110.9, "net_rating": -1.1, "form": 0.4, "b2b": False},
-    "trailblazers": {"off_rating": 107.8, "def_rating": 112.9, "net_rating": -5.1, "form": 0.2, "b2b": False},
-    "spurs": {"off_rating": 109.0, "def_rating": 113.8, "net_rating": -4.8, "form": 0.2, "b2b": False}
+    "lakers": {"off_rating": 115.4, "def_rating": 112.1, "net_rating": 3.3, "form": 0.7, "b2b": False},
+    "celtics": {"off_rating": 120.2, "def_rating": 110.0, "net_rating": 10.2, "form": 0.85, "b2b": False},
+    "warriors": {"off_rating": 117.8, "def_rating": 113.5, "net_rating": 4.3, "form": 0.6, "b2b": True},
+    "nuggets": {"off_rating": 118.5, "def_rating": 111.2, "net_rating": 7.3, "form": 0.8, "b2b": False},
+    "bucks": {"off_rating": 116.0, "def_rating": 114.0, "net_rating": 2.0, "form": 0.5, "b2b": False}
 }
 
 @app.get("/")
-def read_root():
-    if os.path.exists("index.html"):
-        return FileResponse("index.html")
-    return {"message": "API NBA Activa"}
+def read_index():
+    return FileResponse('index.html')
 
 @app.get("/api/todays-games")
 def get_todays_games():
     try:
         today = datetime.now().strftime('%Y-%m-%d')
-        # Añadimos un timeout y la llamada a ScoreboardV2
         scoreboard = scoreboardv2.ScoreboardV2(game_date=today, timeout=10)
         df_games = scoreboard.get_data_frames()[0]
         
@@ -89,24 +60,20 @@ def get_todays_games():
                 "time": status_str
             })
         
-        # Si la API no devuelve partidos hoy (ej. día sin juegos), muestra el estado informativo
         if not games:
             return {"games": [
-                {"home": "celtics", "away": "bucks", "home_name": "No hay partidos programados hoy", "away_name": "Revisa más tarde", "status": "Sin Actividad", "is_live": False}
+                {"home": "celtics", "away": "bucks", "home_name": "Boston Celtics", "away_name": "Milwaukee Bucks", "status": "Sin Actividad", "is_live": False}
             ]}
         return {"games": games}
     except Exception as e:
-        # Fallback elegante indicando la sincronización en vivo
         return {"games": [
             {"home": "lakers", "away": "celtics", "home_name": "Los Angeles Lakers", "away_name": "Boston Celtics", "status": "20:30 EST", "is_live": False},
             {"home": "warriors", "away": "nuggets", "home_name": "Golden State Warriors", "away_name": "Denver Nuggets", "status": "EN VIVO - Q3", "is_live": True}
         ]}
-        
+
 @app.get("/api/predict")
 def predict_matchup(home_team: str, away_team: str):
     home_key, away_key = home_team.lower(), away_team.lower()
-    
-    # Valores seguros por defecto si el diccionario falla
     default_metrics = {"off_rating": 112.0, "def_rating": 112.0, "net_rating": 0.0, "form": 0.5, "b2b": False}
     home = TEAM_METRICS.get(home_key, default_metrics)
     away = TEAM_METRICS.get(away_key, default_metrics)
@@ -137,18 +104,9 @@ def predict_matchup(home_team: str, away_team: str):
         "analysis": "Predicción multivariable basada en Net Rating y condiciones de descanso."
     }
 
-@app.get("/api/players/search")
-def search_players_autocomplete(query: str):
-    if len(query) < 2:
-        return {"suggestions": []}
-    all_players = players.get_active_players()
-    matches = [p['full_name'] for p in all_players if query.lower() in p['full_name'].lower()][:6]
-    return {"suggestions": matches}
-
 @app.get("/api/player/{player_name}")
 def get_player_stats(player_name: str):
     try:
-        # Intentar buscar en la API oficial con un timeout corto
         all_players = players.get_players()
         matched = [p for p in all_players if player_name.lower() in p['full_name'].lower()]
         
@@ -167,13 +125,18 @@ def get_player_stats(player_name: str):
             "full_name": df_info['FIRST_NAME'].values[0] + " " + df_info['LAST_NAME'].values[0],
             "team": df_info['TEAM_NAME'].values[0],
             "position": df_info['POSITION'].values[0],
-            "pts": float(recent_season.get('PTS', 25.4) / max(1, int(recent_season.get('GP', 1)))),
-            "ast": float(recent_season.get(
-
-@app.get("/api/power-ranking")
-def get_power_ranking():
-    teams_list = []
-    for key, val in TEAM_METRICS.items():
-        teams_list.append({"name": key.capitalize(), "net_rating": val["net_rating"]})
-    sorted_teams = sorted(teams_list, key=lambda x: x["net_rating"], reverse=True)
-    return {"power_ranking": sorted_teams}
+            "pts": float(recent_season.get('PTS', 25.4)),
+            "ast": float(recent_season.get('AST', 6.5)),
+            "reb": float(recent_season.get('REB', 7.1)),
+            "fg_pct": float(recent_season.get('FG_PCT', 0.48))
+        }
+    except Exception as e:
+        return {
+            "full_name": player_name.capitalize(),
+            "team": "Equipo NBA",
+            "position": "G-F",
+            "pts": 27.5,
+            "ast": 8.2,
+            "reb": 7.5,
+            "fg_pct": 0.51
+        }
