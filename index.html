@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NBA SofaScore Pro Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #121212; color: #e0e0e0; margin: 0; padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; background: #1e1e1e; padding: 25px; border-radius: 12px; box-shadow: 0 8px 16px rgba(0,0,0,0.5); }
+        .nav-tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #333; padding-bottom: 10px; }
+        .tab-btn { background: #2c2c2c; color: #fff; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .tab-btn.active { background: #ff5722; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .game-card { background: #252525; padding: 15px; border-radius: 8px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid #ff5722; }
+        .game-card.live { border-left-color: #4caf50; }
+        .badge-live { background: #4caf50; color: #fff; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+        .action-btn { background: #ff5722; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        select, input { width: 100%; padding: 12px; background: #2c2c2c; color: #fff; border: 1px solid #444; border-radius: 6px; margin-bottom: 15px; box-sizing: border-box; }
+        optgroup { background: #1a1a1a; color: #ff5722; font-weight: bold; }
+        option { background: #2c2c2c; color: #fff; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .card { background: #252525; padding: 15px; border-radius: 8px; margin-top: 15px; }
+        .suggestions-box { background: #2c2c2c; border: 1px solid #444; border-radius: 6px; margin-top: -10px; margin-bottom: 15px; max-height: 150px; overflow-y: auto; }
+        .suggestion-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #333; }
+        .suggestion-item:hover { background: #ff5722; color: white; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #333; }
+        th { color: #ff5722; background: #2a2a2a; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2 style="text-align: center; color: #ff5722; margin-top:0;">🏀 NBA SofaScore Analytics Pro</h2>
+
+        <div class="nav-tabs">
+            <button class="tab-btn active" onclick="switchTab('games-tab', this); loadGames();">📅 Partidos (Auto-Refresh)</button>
+            <button class="tab-btn" onclick="switchTab('predict-tab', this)">📊 Predicción Multivariable</button>
+            <button class="tab-btn" onclick="switchTab('players-tab', this)">👤 Jugadores (Autocompletado)</button>
+            <button class="tab-btn" onclick="switchTab('ranking-tab', this); loadPowerRanking();">🏆 Power Ranking</button>
+        </div>
+
+        <!-- Tab 1 -->
+        <div id="games-tab" class="tab-content active">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h3>Partidos de Hoy</h3>
+                <small style="color:#aaa;">🔄 Sincronizando cada 30s</small>
+            </div>
+            <div id="games-list">Cargando partidos...</div>
+        </div>
+
+        <!-- Tab 2 -->
+        <div id="predict-tab" class="tab-content">
+            <div class="grid-2">
+                <div>
+                    <label>Equipo Local:</label>
+                    <select id="home_team">
+                        <optgroup label="Conferencia Este">
+                            <option value="celtics">Boston Celtics</option>
+                            <option value="bucks">Milwaukee Bucks</option>
+                            <option value="sixers">Philadelphia 76ers</option>
+                            <option value="knicks">New York Knicks</option>
+                            <option value="cavaliers">Cleveland Cavaliers</option>
+                            <option value="pacers">Indiana Pacers</option>
+                            <option value="magic">Orlando Magic</option>
+                            <option value="heat">Miami Heat</option>
+                            <option value="bulls">Chicago Bulls</option>
+                            <option value="hawks">Atlanta Hawks</option>
+                            <option value="nets">Brooklyn Nets</option>
+                            <option value="raptors">Toronto Raptors</option>
+                            <option value="hornets">Charlotte Hornets</option>
+                            <option value="wizards">Washington Wizards</option>
+                            <option value="pistons">Detroit Pistons</option>
+                        </optgroup>
+                        <optgroup label="Conferencia Oeste">
+                            <option value="nuggets">Denver Nuggets</option>
+                            <option value="timberwolves">Minnesota Timberwolves</option>
+                            <option value="thunder">Oklahoma City Thunder</option>
+                            <option value="clippers">LA Clippers</option>
+                            <option value="mavericks">Dallas Mavericks</option>
+                            <option value="suns">Phoenix Suns</option>
+                            <option value="pelicans">New Orleans Pelicans</option>
+                            <option value="lakers" selected>Los Angeles Lakers</option>
+                            <option value="kings">Sacramento Kings</option>
+                            <option value="warriors">Golden State Warriors</option>
+                            <option value="rockets">Houston Rockets</option>
+                            <option value="jazz">Utah Jazz</option>
+                            <option value="grizzlies">Memphis Grizzlies</option>
+                            <option value="trailblazers">Portland Trail Blazers</option>
+                            <option value="spurs">San Antonio Spurs</option>
+                        </optgroup>
+                    </select>
+                </div>
+                <div>
+                    <label>Equipo Visitante:</label>
+                    <select id="away_team">
+                        <optgroup label="Conferencia Este">
+                            <option value="celtics" selected>Boston Celtics</option>
+                            <option value="bucks">Milwaukee Bucks</option>
+                            <option value="sixers">Philadelphia 76ers</option>
+                            <option value="knicks">New York Knicks</option>
+                            <option value="cavaliers">Cleveland Cavaliers</option>
+                            <option value="pacers">Indiana Pacers</option>
+                            <option value="magic">Orlando Magic</option>
+                            <option value="heat">Miami Heat</option>
+                            <option value="bulls">Chicago Bulls</option>
+                            <option value="hawks">Atlanta Hawks</option>
+                            <option value="nets">Brooklyn Nets</option>
+                            <option value="raptors">Toronto Raptors</option>
+                            <option value="hornets">Charlotte Hornets</option>
+                            <option value="wizards">Washington Wizards</option>
+                            <option value="pistons">Detroit Pistons</option>
+                        </optgroup>
+                        <optgroup label="Conferencia Oeste">
+                            <option value="nuggets">Denver Nuggets</option>
+                            <option value="timberwolves">Minnesota Timberwolves</option>
+                            <option value="thunder">Oklahoma City Thunder</option>
+                            <option value="clippers">LA Clippers</option>
+                            <option value="mavericks">Dallas Mavericks</option>
+                            <option value="suns">Phoenix Suns</option>
+                            <option value="pelicans">New Orleans Pelicans</option>
+                            <option value="lakers">Los Angeles Lakers</option>
+                            <option value="kings">Sacramento Kings</option>
+                            <option value="warriors">Golden State Warriors</option>
+                            <option value="rockets">Houston Rockets</option>
+                            <option value="jazz">Utah Jazz</option>
+                            <option value="grizzlies">Memphis Grizzlies</option>
+                            <option value="trailblazers">Portland Trail Blazers</option>
+                            <option value="spurs">San Antonio Spurs</option>
+                        </optgroup>
+                    </select>
+                </div>
+            </div>
+            <button class="action-btn" style="width:100%; font-size:16px; padding:12px;" onclick="runPrediction()">Calcular Modelo Multivariable</button>
+
+            <div id="analysis-results" style="display:none;">
+                <div class="card">
+                    <h3 id="matchup-title" style="margin-top:0;"></h3>
+                    <div id="prob-bars"></div>
+                    <p id="analysis-text" style="color:#aaa; font-style:italic;"></p>
+                </div>
+
+                <div class="card">
+                    <h4>📈 Matchup Eficiencia Ofensiva vs Defensiva</h4>
+                    <canvas id="ratingsChart" height="120"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 3 -->
+        <div id="players-tab" class="tab-content">
+            <label>Buscar Jugador:</label>
+            <input type="text" id="player_search" placeholder="Escribe al menos 2 letras (ej. LeBron, Curry, Luka)" oninput="handleAutocomplete()">
+            <div id="suggestions" class="suggestions-box" style="display:none;"></div>
+            <button class="action-btn" style="width:100%; padding:12px;" onclick="searchPlayer()">Consultar Estadísticas</button>
+            <div id="player-result" class="card" style="margin-top:15px;"><p style="color:#777; text-align:center;">Ingresa un nombre para buscar.</p></div>
+        </div>
+
+        <!-- Tab 4 -->
+        <div id="ranking-tab" class="tab-content">
+            <h3 style="color:#ff5722;">Clasificación de Franquicias</h3>
+            <div id="ranking-list">Cargando...</div>
+        </div>
+    </div>
+
+    <script>
+        let chartInstance = null;
+
+        function switchTab(tabId, element) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            element.classList.add('active');
+        }
+
+        async function loadGames() {
+            const res = await fetch('/api/todays-games');
+            const data = await res.json();
+            let html = '';
+            data.games.forEach(g => {
+                const liveBadge = g.is_live ? `<span class="badge-live">EN VIVO</span>` : '';
+                html += `
+                    <div class="game-card ${g.is_live ? 'live' : ''}">
+                        <div>
+                            <strong>${g.home_name} vs ${g.away_name}</strong> ${liveBadge}<br>
+                            <small style="color:#aaa;">⏰ ${g.status}</small>
+                        </div>
+                        <button class="action-btn" onclick="selectGame('${g.home}', '${g.away}')">Analizar</button>
+                    </div>
+                `;
+            });
+            document.getElementById('games-list').innerHTML = html;
+        }
+
+        function selectGame(home, away) {
+            if(document.getElementById('home_team').querySelector(`option[value="${home}"]`)) {
+                document.getElementById('home_team').value = home;
+            }
+            if(document.getElementById('away_team').querySelector(`option[value="${away}"]`)) {
+                document.getElementById('away_team').value = away;
+            }
+            switchTab('predict-tab', document.querySelectorAll('.tab-btn')[1]);
+            runPrediction();
+        }
+
+        async function runPrediction() {
+            const home = document.getElementById('home_team').value;
+            const away = document.getElementById('away_team').value;
+
+            if(home === away) { alert("Selecciona equipos distintos."); return; }
+
+            const res = await fetch(`/api/predict?home_team=${home}&away_team=${away}`);
+            const data = await res.json();
+
+            document.getElementById('analysis-results').style.display = 'block';
+            document.getElementById('matchup-title').innerText = data.matchup;
+            
+            let probsHtml = '';
+            for(let team in data.predictions) {
+                probsHtml += `<p>• <b>${team}:</b> <span style="color:#4caf50; font-size:18px;">${data.predictions[team]}</span></p>`;
+            }
+            document.getElementById('prob-bars').innerHTML = probsHtml;
+            document.getElementById('analysis-text').innerText = data.analysis;
+
+            const ctx = document.getElementById('ratingsChart').getContext('2d');
+            if(chartInstance) chartInstance.destroy();
+
+            chartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Offensive Rating', 'Defensive Rating', 'Net Rating'],
+                    datasets: [
+                        { label: data.stats_chart.teams[0], data: [data.stats_chart.off_rating[0], data.stats_chart.def_rating[0], data.stats_chart.net_rating[0]], backgroundColor: '#ff5722' },
+                        { label: data.stats_chart.teams[1], data: [data.stats_chart.off_rating[1], data.stats_chart.def_rating[1], data.stats_chart.net_rating[1]], backgroundColor: '#2196f3' }
+                    ]
+                },
+                options: { responsive: true, plugins: { legend: { labels: { color: '#fff' } } } }
+            });
+        }
+
+        async function handleAutocomplete() {
+            const query = document.getElementById('player_search').value;
+            const box = document.getElementById('suggestions');
+
+            if(query.length < 2) { box.style.display = 'none'; return; }
+
+            const res = await fetch(`/api/players/search?query=${encodeURIComponent(query)}`);
+            const data = await res.json();
+
+            if(data.suggestions.length > 0) {
+                let html = '';
+                data.suggestions.forEach(name => {
+                    html += `<div class="suggestion-item" onclick="selectSuggestion('${name}')">${name}</div>`;
+                });
+                box.innerHTML = html;
+                box.style.display = 'block';
+            } else {
+                box.style.display = 'none';
+            }
+        }
+
+        function selectSuggestion(name) {
+            document.getElementById('player_search').value = name;
+            document.getElementById('suggestions').style.display = 'none';
+            searchPlayer();
+        }
+
+        async function searchPlayer() {
+            const name = document.getElementById('player_search').value;
+            const div = document.getElementById('player-result');
+            if(!name) return;
+
+            div.innerHTML = "<p style='color:#aaa;'>Consultando registro oficial...</p>";
+            try {
+                const res = await fetch(`/api/player/${name}`);
+                const data = await res.json();
+                if(res.ok) {
+                    div.innerHTML = `
+                        <h3 style="color:#ff5722; margin-top:0;">${data.player}</h3>
+                        <p><b>Equipo:</b> ${data.data.team}</p>
+                        <p><b>Posición:</b> ${data.data.position}</p>
+                        <p>🏀 <b>Puntos/Partido:</b> ${data.data.points}</p>
+                        <p>🗑️ <b>Rebotes/Partido:</b> ${data.data.rebounds}</p>
+                        <p>🎯 <b>Asistencias/Partido:</b> ${data.data.assists}</p>
+                        <p>⏱️ <b>Minutos/Partido:</b> ${data.data.minutes}</p>
+                    `;
+                } else {
+                    div.innerHTML = `<p style="color:#ff5252;">${data.detail}</p>`;
+                }
+            } catch(e) {
+                div.innerHTML = `<p style="color:#ff5252;">Error al consultar.</p>`;
+            }
+        }
+
+        async function loadPowerRanking() {
+            const div = document.getElementById('ranking-list');
+            const res = await fetch('/api/power-ranking');
+            const data = await res.json();
+
+            let html = `<table><tr><th>#</th><th>Equipo</th><th>Net Rating</th></tr>`;
+            data.power_ranking.forEach((t, i) => {
+                html += `<tr><td><b>${i+1}</b></td><td>${t.name}</td><td style="color:${t.net_rating > 0 ? '#4caf50' : '#ff5252'}; font-weight:bold;">${t.net_rating}</td></tr>`;
+            });
+            html += `</table>`;
+            div.innerHTML = html;
+        }
+
+        loadGames();
+        setInterval(loadGames, 30000);
+    </script>
+</body>
+</html>
